@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ro'yxatdan O'tish</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg,#667eea,#764ba2); margin:0;}
+.container { max-width:420px; width:100%; background:#fff; padding:35px; border-radius:15px; box-shadow:0 15px 35px rgba(0,0,0,0.25);}
+h2{text-align:center;margin-bottom:30px;color:#2c3e50;font-size:32px;}
+.form-group{margin-bottom:25px;}
+label{display:block;margin-bottom:10px;font-weight:600;color:#34495e;}
+input{width:100%;padding:14px 18px;border:2px solid #e1e8ed;border-radius:10px;font-size:16px;transition:0.3s;background:#f8f9fa;}
+input:focus{border-color:#3498db;outline:none;background:#fff;box-shadow:0 0 0 3px rgba(52,152,219,0.2);}
+button{width:100%;padding:16px;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;margin-top:15px;transition:0.3s;}
+button:hover{background:linear-gradient(135deg,#2980b9,#2471a3);transform:translateY(-3px);}
+.error{color:#e74c3c;font-size:14px;display:none;margin-top:8px;padding:8px 12px;border-left:4px solid #e74c3c;background:#fdf2f2;border-radius:6px;}
+.success{display:none;text-align:center;margin-top:25px;padding:16px;background:#d5f4e6;border-radius:10px;color:#27ae60;font-weight:600;font-size:16px;border:2px solid #27ae60;}
+.loading{display:none;text-align:center;margin:20px 0;}
+.spinner{border:4px solid #f3f3f3;border-top:4px solid #3498db;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 15px;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>📝 Ro'yxatdan O'tish</h2>
+<form id="registerForm">
+<div class="form-group">
+<label for="name">👤 Ism</label>
+<input type="text" id="name" placeholder="Ismingizni kiriting" required>
+<div class="error" id="nameError"></div>
+</div>
+<div class="form-group">
+<label for="email">📧 Email</label>
+<input type="email" id="email" placeholder="Emailingiz" required>
+<div class="error" id="emailError"></div>
+</div>
+<div class="form-group">
+<label for="password">🔐 Parol</label>
+<input type="password" id="password" placeholder="Parol (6+ belgi)" required minlength="6">
+<div class="error" id="passwordError"></div>
+</div>
+<div class="loading" id="loading"><div class="spinner"></div><p>Ma'lumotlar yuborilmoqda...</p></div>
+<button type="submit" id="submitBtn">✅ Ro'yxatdan O'tish</button>
+<div class="success" id="successMessage">🎉 Muvaffaqiyatli ro'yxatdan o'tdingiz!</div>
+</form>
+</div>
+<script>
+const form=document.getElementById('registerForm');
+form.addEventListener('submit', async e=>{
+e.preventDefault();
+const submitBtn=document.getElementById('submitBtn');
+const loading=document.getElementById('loading');
+const successMessage=document.getElementById('successMessage');
+submitBtn.disabled=true;
+loading.style.display='block';
+successMessage.style.display='none';
+
+const name=document.getElementById('name').value.trim();
+const email=document.getElementById('email').value.trim();
+const password=document.getElementById('password').value;
+
+let isValid=true;
+if(name.length<2){document.getElementById('nameError').textContent='Ism kamida 2 ta belgidan';document.getElementById('nameError').style.display='block';isValid=false;}
+if(name.length>50){document.getElementById('nameError').textContent='Ism 50 ta belgidan oshmasligi kerak';document.getElementById('nameError').style.display='block';isValid=false;}
+const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if(!emailRegex.test(email)){document.getElementById('emailError').textContent='To\'gri email kiriting';document.getElementById('emailError').style.display='block';isValid=false;}
+if(password.length<6){document.getElementById('passwordError').textContent='Parol kamida 6 ta belgi';document.getElementById('passwordError').style.display='block';isValid=false;}
+if(password.length>100){document.getElementById('passwordError').textContent='Parol 100 ta belgidan oshmasligi kerak';document.getElementById('passwordError').style.display='block';isValid=false;}
+if(!isValid){submitBtn.disabled=false;loading.style.display='none';return;}
+
+try{
+const res=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+const data=await res.json();
+if(data.success){successMessage.style.display='block';form.reset();setTimeout(()=>{successMessage.style.display='none';},5000);}
+else{alert(data.message||'Xatolik yuz berdi!');}
+}catch(err){alert('Server bilan bog\'lanishda xatolik yuz berdi!');}
+finally{submitBtn.disabled=false;loading.style.display='none';}
+});
+</script>
+</body>
+</html>
